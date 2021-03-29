@@ -1,54 +1,71 @@
 const express = require('express');
-
+const mongoose = require('mongoose');
 const app = express();
+const Post = require('./models/Post');
 
+const mongodbOptions = {
+  useNewUrlParser: true,
+  useCreateIndex: true,
+  useUnifiedTopology: true,
+  useFindAndModify: true,
+};
+
+const DATABASE =
+  '';
+
+mongoose.connect(DATABASE, mongodbOptions, (err) => {
+  if (err) {
+    throw err;
+  } else {
+    console.log('connection successfull');
+  }
+});
+
+// middleware
 app.use(express.json());
+app.use(express.urlencoded({ extended: false }));
 
-app.use(express.urlencoded({ extended: true }));
+// routes
+// CRUD
+
+// create a post
+app.post('/posts', async (req, res) => {
+  const post = await new Post(req.body).save();
+  res.send(post);
+});
+
+// read all posts
+app.get('/posts', async (req, res) => {
+  // find all posts
+  const posts = await Post.find({});
+  res.send(posts);
+});
+
+// read single post
+app.get('/posts/:id', async (req, res) => {
+  const { id } = req.params;
+  const post = await Post.findOne({ _id: id });
+  res.send(post);
+});
+
+// delete a post
+app.delete('/posts/:id', async (req, res) => {
+  const { id } = req.params;
+  const post = await Post.findOneAndDelete({ _id: id });
+  res.send(post);
+});
+
+// edit a post
+app.put('/posts/:id', async (req, res) => {
+  const { id } = req.params;
+  const post = await Post.findOneAndUpdate({ _id: id }, req.body, {
+    new: true,
+  });
+  res.send(post);
+});
 
 const port = 4000;
 
-const posts = [
-  { id: '1', title: 'first post', desc: 'lorem ipsum doller emmat' },
-  { id: '2', title: 'second post', desc: 'lorem ipsum doller emmat' },
-  { id: '3', title: 'third post', desc: 'lorem ipsum doller emmat' },
-  { id: '4', title: 'fourth post', desc: 'lorem ipsum doller emmat' },
-];
+app.listen(port, () => console.log(`server is listening on port ${port}`));
 
-app.get('/', (req, res) => {
-  res.send(posts);
-});
-
-app.post('/', (req, res) => {
-  const body = req.body;
-  posts.push(body);
-  res.send(posts);
-});
-
-app.get('/posts/:id', (req, res) => {
-  // const id = req.params.id;
-  const { id } = req.params;
-  console.log({ id });
-  const post = posts.find((p) => p.id === id);
-  res.send(post);
-  const body = req.body;
-  // find the post by id
-  const pos = posts.find((p) => p.id === id);
-  pos.title = body.title;
-  pos.desc = body.desc;
-  res.send(post);
-});
-
-app.delete('/posts/:id', (req, res) => {
-  const { id } = req.params;
-  const newPosts = posts.filter((post) => post.id !== id);
-  res.send(newPosts);
-});
-
-app.listen(port, () => console.log('server is listening'));
-
-// CRUD
-// C => Create
-// R => READ
-// U => UPDATE
-// D => DELETE
+// GET, POST, PUT, DELETE
